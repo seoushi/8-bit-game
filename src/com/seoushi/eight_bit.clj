@@ -1,18 +1,21 @@
-(comment
- Sample clojure source file
- )
+;;
+;; Author: Sean Chapel (seoushi@gmail.com)
+;; A game made for a coding competition over at gpwiki.org
+;;
+
+
 (ns com.seoushi.eight-bit
   (:import (java.awt Color Image)
     (java.io File)
     (javax.imageio ImageIO))
-  (:use com.seoushi.window com.seoushi.image)
+  (:use com.seoushi.window
+    com.seoushi.image
+    com.seoushi.sprite)
   (:gen-class))
 
 
 (def SCREEN-WIDTH 640)
 (def SCREEN-HEIGHT 480)
-
-
 
 
 
