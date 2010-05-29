@@ -10,20 +10,23 @@
     (javax.imageio ImageIO))
   (:use com.seoushi.window
     com.seoushi.image
-    com.seoushi.sprite)
+    com.seoushi.sprite
+    com.seoushi.time
+    com.seoushi.animation)
   (:gen-class))
 
 
 (def SCREEN-WIDTH 640)
 (def SCREEN-HEIGHT 480)
 
+(def MOVEMENT-PER-SEC 100) ;; in pixels
 
 
 
+;; varibles
+(def RUNNING (ref ()))
+(def START-TIME (get-time))
 
-
-(defn get-time []
-  (System/currentTimeMillis))
 
 
 ;; callback events
@@ -38,26 +41,43 @@
   (println "mouse was pressed"))
 
 (defn window-closing [frame]
+  (dosync (ref-set RUNNING false))
   (.dispose frame)
   (println "window closing"))
 
 
+
 ;; intialization
 (defn window-created [window]
-  (conj window {:player-tiles (load-image "resources/images/player.png")}))
+  (let [image (load-image "resources/images/player.png")
+        sprites (make-sprite-set image 32 64 7)]
+    (dosync (ref-set RUNNING true))
+    (update-time)
+    (conj window {:sprites sprites
+                  :walk-anim (anim sprites 0 5 200)})))
 
 
 ;; main game loop
 (defn game-loop [window]
-  (.setColor (:graphics window) (Color. 0 0 0))
-  (.fillRect (:graphics window) 0 0 SCREEN-WIDTH SCREEN-HEIGHT)
-  (draw-image (:graphics window) (:player-tiles window) 100 50)
-  (draw-image-part (:graphics window) 
-    (:player-tiles window)
-    0 0
-    300 100
-    32 64)
-  (.show (:buffer window)))
+  (let [graphics (:graphics window)
+        sprites (:sprites window)
+        walk-anim (:walk-anim window)]
+    (loop [position 0]
+      (let [delta-time (get-delta-time @LAST-FRAME-TIME)]
+        (update-time)
+        (if @RUNNING
+          (do
+            (.setColor graphics (Color. 0 0 0))
+            (.fillRect graphics 0 0 SCREEN-WIDTH SCREEN-HEIGHT)
+            (draw-sprite graphics 
+              (anim-get-frame
+                walk-anim 
+                START-TIME)
+              position
+              100)
+            (.show (:buffer window))
+
+            (recur (+ position (* delta-time MOVEMENT-PER-SEC)))))))))
 
 
 (defn -main []

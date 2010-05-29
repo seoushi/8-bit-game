@@ -48,11 +48,11 @@
                    (recur 0 (+ row 1) num-left sprites)
                    (if (>= row max-rows)
                      sprites
-                     (recur (+ col 1)
+                     (recur (inc col)
                        row
-                       (- num-left 1)
+                       (dec num-left)
                        (conj sprites (make-sprite image
                                        (* col width)
                                        (* row height)
-                                       (* (+ col 1) width)
-                                       (* (+ row 1) height)))))))))
+                                       (* (inc col) width)
+                                       (* (inc row) height)))))))))
