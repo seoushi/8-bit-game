@@ -77,6 +77,7 @@
     (dosync (ref-set PLAYER
               (struct player
                 :none
+                :right
                 100
                 0
                 100

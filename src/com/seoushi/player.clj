@@ -8,22 +8,25 @@
   )
 
 ;; definition of a player
-(defstruct player :direction :speed :x :y :anim :anim-start :anims)
+(defstruct player :direction :facing :speed :x :y :anim :anim-start :anims)
 
 
 ;; starts moving a player in a direction
 (defn player-move [player direction]
   (if (= direction (:direction player))
     player
-    (let [anims (:anims player)]
+    (let [anims (:anims player)
+          facing (if (= direction :none)
+                   (:facing player)
+                   direction)]
       (assoc player
         :direction direction
+        :facing facing
         :anim (cond
                 (= direction :left) (:walk-left anims)
                 (= direction :right) (:walk-right anims)
                 :else (:idle anims))
-        :anim-start (:anim-start player))))) ;; this really should be (get-time) but java canvas does not handle key repeats correctly
-
+        :anim-start (get-time)))))
 
 
 ;; should be called once a frame to update the players position
@@ -40,13 +43,17 @@
 
 ;; draws the player on the screen
 (defn player-draw [player graphics]
-  (draw-sprite graphics
-    (anim-get-frame
-      (:anim player)
-      (:anim-start player))
-    (:x player)
-    (:y player))
-  player)
+  (let [anim-sprite (anim-get-frame
+                      (:anim player)
+                      (:anim-start player))
+        sprite (if (= (:facing player) :right)
+                 anim-sprite
+                 (sprite-flip-x anim-sprite))]
+    (draw-sprite graphics
+      sprite
+      (:x player)
+      (:y player))
+    player))
 
 
 ;;updates and draws the player

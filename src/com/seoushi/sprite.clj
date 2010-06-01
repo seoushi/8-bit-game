@@ -19,12 +19,12 @@
 
 ;; gets the sprites width
 (defn sprite-width [sprite]
-  (- (:x2 sprite) (:x1 sprite)))
+  (math/abs (- (:x2 sprite) (:x1 sprite))))
 
 
 ;; gets the sprites height
 (defn sprite-height [sprite]
-  (- (:y2 sprite) (:y1 sprite)))
+  (math/abs (- (:y2 sprite) (:y1 sprite))))
 
 
 ;; draws a sprite at a given position
@@ -35,6 +35,11 @@
     (:x1 sprite) (:y1 sprite) (:x2 sprite) (:y2 sprite)
     nil))
 
+;; flips the x coordinates of the sprite
+(defn sprite-flip-x [sprite]
+  (assoc sprite
+    :x1 (:x2 sprite)
+    :x2 (:x1 sprite)))
 
 ;; makes an array of sprites from an image. recurses through the image from top to bottom
 (defn make-sprite-set [image width height max]
