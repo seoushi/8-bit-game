@@ -44,14 +44,14 @@
          was-left-key (= key (. KeyEvent VK_LEFT))
          was-right-key (= key (. KeyEvent VK_RIGHT))
          move-player #(dosync (ref-set PLAYER (player-move @PLAYER %)))
-         moving (:moving @PLAYER)]
+         dir (:direction @PLAYER)]
     (if (= type :pressed)
       (cond
         was-right-key (move-player :right)
         was-left-key (move-player :left)))
     (if (and (= type :released)
-          (or (and (= moving :left) was-left-key)
-            (and (= moving :right) was-right-key)))
+          (or (and (= dir :left) was-left-key)
+            (and (= dir :right) was-right-key)))
       (move-player :none))))
 
 
@@ -74,8 +74,9 @@
         walk-anim (anim-make sprites 0 5 200)]
     (dosync (ref-set RUNNING true))
     (update-time)
-    (dosync (ref-set PLAYER 
-              (player-make :none
+    (dosync (ref-set PLAYER
+              (struct player
+                :none
                 100
                 0
                 100

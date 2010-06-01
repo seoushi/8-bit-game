@@ -7,53 +7,35 @@
   ;(:import )
   )
 
-;; makes a player with all relevant info
-(defn player-make [moving speed x y anim anim-start anims]
-  {:moving moving
-   :speed speed
-   :x x
-   :y y
-   :anim anim
-   :anim-start anim-start
-   :anims anims})
+;; definition of a player
+(defstruct player :direction :speed :x :y :anim :anim-start :anims)
+
 
 ;; starts moving a player in a direction
 (defn player-move [player direction]
-  (if (= direction (:moving player))
+  (if (= direction (:direction player))
     player
     (let [anims (:anims player)]
-      (player-make
-        direction
-        (:speed player)
-        (:x player)
-        (:y player)
-        (cond
-          (= direction :left) (:walk-left anims)
-          (= direction :right) (:walk-right anims)
-          :else (:idle anims))
-        (:anim-start player) ;; this really should be (get-time) but java canvas does not handle key repeats correctly
-        anims))))
+      (assoc player
+        :direction direction
+        :anim (cond
+                (= direction :left) (:walk-left anims)
+                (= direction :right) (:walk-right anims)
+                :else (:idle anims))
+        :anim-start (:anim-start player))))) ;; this really should be (get-time) but java canvas does not handle key repeats correctly
+
 
 
 ;; should be called once a frame to update the players position
 (defn player-update [player delta-time]
-  (player-make
-    (:moving player)
-    (:speed player)
-
-    (let [moving (:moving player)
-          x (:x player)
-          speed (:speed player)
-          distance (* speed delta-time)]
-      (cond
-        (= moving :left) (- x distance)
-        (= moving :right) (+ x distance)
-        :else (:x player)))
-    (:y player)
-    (:anim player)
-
-    (:anim-start player)
-    (:anims player)))
+  (assoc player
+    :x (let [dir (:direction player)
+             x (:x player)
+             distance (* (:speed player) delta-time)]
+         (cond
+           (= dir :left) (- x distance)
+           (= dir :right) (+ x distance)
+           :else (:x player)))))
 
 
 ;; draws the player on the screen
