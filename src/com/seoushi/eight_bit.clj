@@ -27,7 +27,6 @@
 
 ;; varibles
 (def RUNNING (ref ()))
-(def START-TIME (get-time))
 (def PLAYER (ref ()))
 
 
@@ -40,19 +39,24 @@
   (println "window closing"))
 
 (defn handle-keypress [event type]
-  (let  [key (.getKeyCode event)
-         was-left-key (= key (. KeyEvent VK_LEFT))
-         was-right-key (= key (. KeyEvent VK_RIGHT))
-         move-player #(dosync (ref-set PLAYER (player-move @PLAYER %)))
-         dir (:direction @PLAYER)]
+  (let  [key            (.getKeyCode event)
+         was-left-key   (= key (. KeyEvent VK_LEFT))
+         was-right-key  (= key (. KeyEvent VK_RIGHT))
+         was-jump-key   (= key (. KeyEvent VK_SPACE))
+         move-player    #(dosync (ref-set PLAYER (player-move @PLAYER %)))
+         jump-player    #(dosync (ref-set PLAYER (player-jump @PLAYER %)))
+         dir            (:direction @PLAYER)]
     (if (= type :pressed)
       (cond
-        was-right-key (move-player :right)
-        was-left-key (move-player :left)))
-    (if (and (= type :released)
-          (or (and (= dir :left) was-left-key)
-            (and (= dir :right) was-right-key)))
-      (move-player :none))))
+        was-right-key   (move-player :right)
+        was-left-key    (move-player :left)
+        was-jump-key    (jump-player true)))
+    (if (= type :released)
+      (if was-jump-key
+        (jump-player false)
+        (if (or (and (= dir :left) was-left-key)
+              (and (= dir :right) was-right-key))
+          (move-player :none))))))
 
 
 
@@ -68,32 +72,35 @@
 
 ;; intialization
 (defn window-created [window]
-  (let [image (load-image "resources/images/player.png")
-        sprites (make-sprite-set image 32 64 7)
-        idle-anim (anim-make sprites 0 0 200)
-        walk-anim (anim-make sprites 0 5 200)]
+  (let [image       (load-image "resources/images/player.png")
+        sprites     (make-sprite-set image 32 64 8)
+        idle-anim   (anim-make sprites 0 0 200)
+        walk-anim   (anim-make sprites 1 6 200)
+        jump-anim   (anim-make sprites 7 7 200)]
     (dosync (ref-set RUNNING true))
     (update-time)
     (dosync (ref-set PLAYER
               (struct player
                 :none
                 :right
+                :none
                 100
                 0
                 100
                 idle-anim
                 (get-time)
-                {:walk-left walk-anim
-                 :walk-right walk-anim
-                 :idle idle-anim})))
+                {:walk-left     walk-anim
+                 :walk-right    walk-anim
+                 :jump          jump-anim
+                 :idle          idle-anim})))
     window))
 
 
 ;; main game loop
 (defn game-loop [window]
-  (let [graphics (:graphics window)
-        sprites (:sprites window)
-        walk-anim (:walk-anim window)]
+  (let [graphics    (:graphics window)
+        sprites     (:sprites window)
+        walk-anim   (:walk-anim window)]
     (loop []
       (let [delta-time (get-delta-time @LAST-FRAME-TIME)]
         (update-time)

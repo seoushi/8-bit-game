@@ -8,25 +8,41 @@
   )
 
 ;; definition of a player
-(defstruct player :direction :facing :speed :x :y :anim :anim-start :anims)
+(defstruct player :direction :facing :action :speed :x :y :anim :anim-start :anims)
 
 
 ;; starts moving a player in a direction
 (defn player-move [player direction]
   (if (= direction (:direction player))
     player
-    (let [anims (:anims player)
-          facing (if (= direction :none)
-                   (:facing player)
-                   direction)]
+    (let [anims     (:anims player)
+          facing    (if (= direction :none)
+                      (:facing player)
+                      direction)
+          action    (if (= (:action player) :jumping)
+                      :jumping
+                      :walking)]
       (assoc player
-        :direction direction
-        :facing facing
-        :anim (cond
-                (= direction :left) (:walk-left anims)
-                (= direction :right) (:walk-right anims)
-                :else (:idle anims))
+        :direction  direction
+        :facing     facing
+        :action     action
+        :anim       (cond
+                      (= direction :left) (:walk-left anims)
+                      (= direction :right) (:walk-right anims)
+                      :else (:idle anims))
         :anim-start (get-time)))))
+
+(defn player-jump [player should-jump?]
+  (let [anims   (:anims player)
+        action  (if should-jump?
+                  :jumping
+                  :walking)
+        anim    (if should-jump?
+                  (:jump anims)
+                  (:idle anims))]
+    (assoc player
+      :action   action
+      :anim     anim)))
 
 
 ;; should be called once a frame to update the players position
