@@ -6,13 +6,15 @@
 
 (ns com.seoushi.eight-bit
   (:import (java.awt Color Image)
+    (java.awt.event KeyEvent)
     (java.io File)
     (javax.imageio ImageIO))
   (:use com.seoushi.window
     com.seoushi.image
     com.seoushi.sprite
     com.seoushi.time
-    com.seoushi.animation)
+    com.seoushi.animation
+    com.seoushi.player)
   (:gen-class))
 
 
@@ -26,6 +28,9 @@
 ;; varibles
 (def RUNNING (ref ()))
 (def START-TIME (get-time))
+(def PLAYER (ref ()))
+
+
 
 
 
@@ -34,8 +39,22 @@
   (.dispose frame)
   (println "window closing"))
 
-(defn handle-keypress [event]
-  (println "key was pressed"))
+(defn handle-keypress [event type]
+  (let  [key (.getKeyCode event)
+         was-left-key (= key (. KeyEvent VK_LEFT))
+         was-right-key (= key (. KeyEvent VK_RIGHT))
+         move-player #(dosync (ref-set PLAYER (player-move @PLAYER %)))
+         moving (:moving @PLAYER)]
+    (if (= type :pressed)
+      (cond
+        was-right-key (move-player :right)
+        was-left-key (move-player :left)))
+    (if (and (= type :released)
+          (or (and (= moving :left) was-left-key)
+            (and (= moving :right) was-right-key)))
+      (move-player :none))))
+
+
 
 (defn handle-mouse [event]
   (println "mouse was pressed"))
@@ -50,11 +69,22 @@
 ;; intialization
 (defn window-created [window]
   (let [image (load-image "resources/images/player.png")
-        sprites (make-sprite-set image 32 64 7)]
+        sprites (make-sprite-set image 32 64 7)
+        idle-anim (anim-make sprites 0 0 200)
+        walk-anim (anim-make sprites 0 5 200)]
     (dosync (ref-set RUNNING true))
     (update-time)
-    (conj window {:sprites sprites
-                  :walk-anim (anim sprites 0 5 200)})))
+    (dosync (ref-set PLAYER 
+              (player-make :none
+                100
+                0
+                100
+                idle-anim
+                (get-time)
+                {:walk-left walk-anim
+                 :walk-right walk-anim
+                 :idle idle-anim})))
+    window))
 
 
 ;; main game loop
@@ -62,22 +92,17 @@
   (let [graphics (:graphics window)
         sprites (:sprites window)
         walk-anim (:walk-anim window)]
-    (loop [position 0]
+    (loop []
       (let [delta-time (get-delta-time @LAST-FRAME-TIME)]
         (update-time)
         (if @RUNNING
           (do
             (.setColor graphics (Color. 0 0 0))
             (.fillRect graphics 0 0 SCREEN-WIDTH SCREEN-HEIGHT)
-            (draw-sprite graphics 
-              (anim-get-frame
-                walk-anim 
-                START-TIME)
-              position
-              100)
+            (dosync (ref-set PLAYER
+                      (player-update-and-draw @PLAYER delta-time graphics)))
             (.show (:buffer window))
-
-            (recur (+ position (* delta-time MOVEMENT-PER-SEC)))))))))
+            (recur)))))))
 
 
 (defn -main []
