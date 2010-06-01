@@ -38,26 +38,22 @@
   (.dispose frame)
   (println "window closing"))
 
-(defn handle-keypress [event type]
-  (let  [key            (.getKeyCode event)
-         was-left-key   (= key (. KeyEvent VK_LEFT))
-         was-right-key  (= key (. KeyEvent VK_RIGHT))
-         was-jump-key   (= key (. KeyEvent VK_SPACE))
-         move-player    #(dosync (ref-set PLAYER (player-move @PLAYER %)))
-         jump-player    #(dosync (ref-set PLAYER (player-jump @PLAYER %)))
-         dir            (:direction @PLAYER)]
+(defn handle-keyboard [event type]
+  "handles the keyboard press and release"
+  (let  [key        (.getKeyCode event)
+         left-key?  (= key (. KeyEvent VK_LEFT))
+         right-key? (= key (. KeyEvent VK_RIGHT))
+         jump-key?  (= key (. KeyEvent VK_SPACE))
+         perform    #(dosync (ref-set PLAYER
+                               (player-perform @PLAYER %)))]
     (if (= type :pressed)
       (cond
-        was-right-key   (move-player :right)
-        was-left-key    (move-player :left)
-        was-jump-key    (jump-player true)))
-    (if (= type :released)
-      (if was-jump-key
-        (jump-player false)
-        (if (or (and (= dir :left) was-left-key)
-              (and (= dir :right) was-right-key))
-          (move-player :none))))))
-
+        right-key?  (perform :walk-right)
+        left-key?   (perform :walk-left)
+        jump-key?   (perform :jump))
+      ;; if released
+      (if (or right-key? left-key?)
+        (perform :idle)))))
 
 
 (defn handle-mouse [event]
@@ -81,18 +77,15 @@
     (update-time)
     (dosync (ref-set PLAYER
               (struct player
-                :none
                 :right
-                :none
+                :idle
+                (get-time)
                 100
                 0
                 100
-                idle-anim
-                (get-time)
-                {:walk-left     walk-anim
-                 :walk-right    walk-anim
-                 :jump          jump-anim
-                 :idle          idle-anim})))
+                {:walk  walk-anim
+                 :jump  jump-anim
+                 :idle  idle-anim})))
     window))
 
 
@@ -119,7 +112,7 @@
     SCREEN-HEIGHT
     "8-Bit Game"
     handle-mouse
-    handle-keypress
+    handle-keyboard
     window-created
     window-closing
     game-loop))
