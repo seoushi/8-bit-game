@@ -1,4 +1,6 @@
- <arg value = "com.seoushi.animation" /> 
+ <arg value = "com.seoushi.actions" /> 
+<arg value = "com.seoushi.animation" /> 
+<arg value = "com.seoushi.constants" /> 
 <arg value = "com.seoushi.eight-bit" /> 
 <arg value = "com.seoushi.image" /> 
 <arg value = "com.seoushi.player" /> 

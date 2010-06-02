@@ -48,12 +48,14 @@
                                (player-perform @PLAYER %)))]
     (if (= type :pressed)
       (cond
-        right-key?  (perform :walk-right)
-        left-key?   (perform :walk-left)
+        right-key?  (do (perform :face-right)
+                      (perform :move))
+        left-key?   (do (perform :face-left)
+                      (perform :move))
         jump-key?   (perform :jump))
       ;; if released
       (if (or right-key? left-key?)
-        (perform :idle)))))
+        (perform :stop)))))
 
 
 (defn handle-mouse [event]
@@ -78,12 +80,12 @@
     (dosync (ref-set PLAYER
               (struct player
                 :right
-                :idle
+                []
                 (get-time)
                 100
                 0
                 100
-                {:walk  walk-anim
+                {:move  walk-anim
                  :jump  jump-anim
                  :idle  idle-anim})))
     window))
