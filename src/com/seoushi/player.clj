@@ -42,7 +42,12 @@
                               :facing :left)
     (= action :face-right)  (assoc player
                               :facing :right)
-    (= action :stop)        (action-remove player :move)
+    (= action :stop-left)   (if (= (:facing player) :left)
+                              (action-remove player :move)
+                              player)
+    (= action :stop-right)   (if (= (:facing player) :right)
+                              (action-remove player :move)
+                              player)
     :else                   (action-perform player action)))
 
 

@@ -54,8 +54,9 @@
                       (perform :move))
         jump-key?   (perform :jump))
       ;; if released
-      (if (or right-key? left-key?)
-        (perform :stop)))))
+      (cond
+        right-key?  (perform :stop-right)
+        left-key?   (perform :stop-left)))))
 
 
 (defn handle-mouse [event]

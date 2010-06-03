@@ -22,6 +22,7 @@
   (first (filter #(= action-name (:name %))
            (:actions entity))))
 
+
 (defn action-add [entity action]
   "adds an action if it doesn't exist already and passes the action's requirements"
   (if (and (nil? (action-find entity (:name action)))
@@ -29,6 +30,7 @@
     (assoc entity
       :actions (conj (:actions entity) action))
     entity))
+
 
 (defn action-remove [entity action-name]
   "removed an actions if it exists"
@@ -52,7 +54,7 @@
 
 (def action-move (struct action
                    :move
-                   #(identity %) ;; always beable to start moving
+                   #(identity %) ;; always be able to start moving
                    move-update
                    0))
 
