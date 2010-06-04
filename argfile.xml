@@ -7,4 +7,5 @@
 <arg value = "com.seoushi.point" /> 
 <arg value = "com.seoushi.sprite" /> 
 <arg value = "com.seoushi.time" /> 
-<arg value = "com.seoushi.window"/>
+<arg value = "com.seoushi.window" /> 
+<arg value = "com.seoushi.world-1-1"/>

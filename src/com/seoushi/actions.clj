@@ -64,19 +64,23 @@
 
 (defn jump-check [entity]
   "checks if a jump should start"
-  (= 100 (:y entity))) ;; TODO: this 100 is the ground plane, this should check the map eventually
+  (= world-plane (:y entity))) ;; TODO: this 100 is the ground plane, this should check the map eventually
 
 (defn jump-update [entity delta-time]
   "updates the vertical position of a player (makes em jump)"
   (let [y               (:y entity)
+        hang-dist       (* gravity delta-time)
         distance        (* 2 gravity delta-time)
         action          (action-find entity :jump)
         start-time      (:start-time action)
         time-passed     (- (get-time) start-time)]
-    (if (>= time-passed jump-time)  ;; entity is done jumping
+    (if (>= time-passed (+ jump-time jump-hang-time)) ;; entity is done jumping
       (action-remove entity :jump)
-      (assoc entity
-        :y (- y distance)))))
+      (if (>= time-passed jump-time) ;; entity is "hanging"
+        (assoc entity
+          :y (- y hang-dist))
+        (assoc entity
+          :y (- y distance))))))
 
 (def action-jump (struct action
                    :jump

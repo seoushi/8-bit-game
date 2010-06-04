@@ -27,9 +27,9 @@
         distance        (* gravity delta-time)
         new-y           (+ y distance)
         fall            #(assoc player :y %)
-        ground-plane    100]    ;; this should be changed to look at the map
+        ground-plane    world-plane]    ;; this should be changed to look at the map
     (if (>= new-y ground-plane)   ;; stop falling if you hit the ground
-      (assoc player :y 100)
+      (assoc player :y world-plane)
       (fall new-y))))
 
 

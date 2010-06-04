@@ -14,7 +14,9 @@
     com.seoushi.sprite
     com.seoushi.time
     com.seoushi.animation
-    com.seoushi.player)
+    com.seoushi.player
+    com.seoushi.constants
+    com.seoushi.world-1-1)
   (:gen-class))
 
 
@@ -71,11 +73,13 @@
 
 ;; intialization
 (defn window-created [window]
-  (let [image       (load-image "resources/images/player.png")
-        sprites     (make-sprite-set image 32 64 8)
-        idle-anim   (anim-make sprites 0 0 200)
-        walk-anim   (anim-make sprites 1 6 200)
-        jump-anim   (anim-make sprites 7 7 200)]
+  (let [player-image    (load-image "resources/images/player.png")
+        sprites         (make-sprite-set player-image 32 48 8)
+        idle-anim       (anim-make sprites 0 0 200)
+        walk-anim       (anim-make sprites 1 6 200)
+        jump-anim       (anim-make sprites 7 7 200)
+        world-image     (load-image "resources/images/tileset.png")
+        tiles           (make-sprite-set world-image 32 32 20)]
     (dosync (ref-set RUNNING true))
     (update-time)
     (dosync (ref-set PLAYER
@@ -85,11 +89,12 @@
                 (get-time)
                 100
                 0
-                100
+                world-plane
                 {:move  walk-anim
                  :jump  jump-anim
                  :idle  idle-anim})))
-    window))
+    (assoc window
+      :tiles tiles)))
 
 
 ;; main game loop
@@ -104,6 +109,7 @@
           (do
             (.setColor graphics (Color. 0 0 0))
             (.fillRect graphics 0 0 SCREEN-WIDTH SCREEN-HEIGHT)
+            (world-draw graphics (:tiles window) world-1-1)
             (dosync (ref-set PLAYER
                       (player-update-and-draw @PLAYER delta-time graphics)))
             (.show (:buffer window))
